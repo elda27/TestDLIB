@@ -1,0 +1,17 @@
+/**
+* このファイルはCMakeにより自動生成されます．
+* 学習データや未学習データのパスを変更したい場合は
+* @CMAKE_CURREN_LIST_DIR@/TrainFilePath.hpp.in
+* を直接編集することをおすすめします．
+*/
+#ifndef TRAIN_FILE_PATH_HPP
+#define TRAIN_FILE_PATH_HPP
+
+#include <string>
+
+std::string const& INPUT_TRAIN_IMAGE_PATH = R"delim(@CMAKE_CURRENT_LIST_DIR@/Train/train-images.idx3-ubyte)delim";
+std::string const& INPUT_TRAIN_LABEL_PATH = R"delim(@CMAKE_CURRENT_LIST_DIR@/Train/train-labels.idx1-ubyte)delim";
+std::string const& INPUT_UNKNOWN_IMAGE_PATH = R"delim(@CMAKE_CURRENT_LIST_DIR@/Train/t10k-images.idx3-ubyte)delim";
+std::string const& INPUT_UNKNOWN_LABEL_PATH = R"delim(@CMAKE_CURRENT_LIST_DIR@/Train/t10k-labels.idx1-ubyte)delim";
+
+#endif //!TRAIN_FILE_PATH_HPP
