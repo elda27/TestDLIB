@@ -98,11 +98,12 @@ int main()
   trainer.set_synchronization_file("mnist_sync", std::chrono::seconds(20));
   trainer.train(train_images, train_labels);
 
+  // 保存前にclear．
+  net.clean();
+
   // 多分学習結果の保存．
   dlib::serialize("mnist_network.dat") << net;
 
-  // 以下CNNを実際に試すので一旦クリアする．
-  net.clean();
 
   std::cout << "[Input trained labels]" << std::endl;
   std::vector<unsigned long> predicted_labels = net(train_images);
