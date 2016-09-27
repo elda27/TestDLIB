@@ -45,6 +45,8 @@ int main()
   );
 
   // 非教師データの読み込み
+  cv_images.clear();
+  tmp_labels.clear();
   readImages(INPUT_UNKNOWN_IMAGE_PATH, cv_images);
   readLabels(INPUT_UNKNOWN_LABEL_PATH, tmp_labels);
   std::vector<dlib::array2d<uchar>> unknown_images(cv_images.size());
@@ -63,11 +65,11 @@ int main()
   // CNN の定義
   // おそらく A<B<C>> となっている場合 Cが入力で，Bが中間層，Aが出力層
   // なので，出力はfcにするのがいいと思う．
-  // fc:Fully connected layer? 10出力
+  // fc<10, ...>:Fully connected layerでノード数は10
   // relu:活性化関数の名前．詳しくはReLUで調べてください
   // con<16,5,5,1,1,SUBNET> で5✕5のフィルタサイズを1✕1のstrideで畳み込みするノードが16個ある
   // max_pool<2, 2, 2, 2, SUBNET> 2✕2のウインドウサイズで2✕2のstrideでプーリングを行う．
-  // relu<fc<84, ...>> 出力と成るサブネットの個数を表しているらしい．この場合84ノード
+  // relu<fc<84, ...>> この場合活性化関数がReLUで84ノードからなる層を定義している．
   // max_pool<2,2,2,2,relu<con<16,5,5,1,1,SUBNET>>> これでconvolutionした結果をReLU関数で活性化してそれをMax poolingする
   // input<array2d<uchar>> cv_image<uchar>を入力に取る．現在cv::Matを入力に取れるように試行錯誤中
   using net_type = dlib::loss_multiclass_log<

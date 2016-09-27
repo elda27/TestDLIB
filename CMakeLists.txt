@@ -9,7 +9,7 @@ if (NOT dlib_FOUND)
   message(FATAL_ERROR "dlib is not found.")
 endif()
 
-find_package(OpenCV REQUIRED core highgui )
+find_package(OpenCV REQUIRED core highgui imgcodecs)
 
 if(NOT OpenCV_FOUND)
   message(FATAL_ERROR "Open CV is not found.")
