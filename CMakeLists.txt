@@ -15,6 +15,16 @@ if(NOT OpenCV_FOUND)
   message(FATAL_ERROR "Open CV is not found.")
 endif()
 
+option(USE_CUDA "Use CUDA and cuDNN." OFF)
+if (${USE_CUDA})
+  find_package(CUDA)
+  if(NOT CUDA_FOUND)
+    message(FATAL_ERROR "CUDA is not found.")
+  endif()
+endif()
+
+# End find packages.
+
 set(MNIST_SOURCES ${CMAKE_CURRENT_LIST_DIR}/ReadMNIST/ReadMNISTDatas.cpp ${CMAKE_CURRENT_LIST_DIR}/ReadMNIST/ReadMNISTDatas.hpp)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/TrainFilePath.hpp.in ${CMAKE_BINARY_DIR}/TrainFilePath.hpp)
@@ -27,11 +37,20 @@ add_executable(ConvertMNISTLabelAndImage
   )
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/ReadMNIST/)
-add_executable(TestDNN 
-  ${MNIST_SOURCES}
-  ${CMAKE_CURRENT_LIST_DIR}/TestDNN/TestDNN.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/TestDNN/DLIBInput.hpp
-  )
+
+if (USE_CUDA)
+  cuda_add_executable(TestDNN 
+    ${MNIST_SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/TestDNN/TestDNN.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/TestDNN/DLIBInput.hpp
+    )
+else()
+  add_executable(TestDNN 
+    ${MNIST_SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/TestDNN/TestDNN.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/TestDNN/DLIBInput.hpp
+    )
+endif()
 
 target_link_libraries(ConvertMNISTLabelAndImage ${OpenCV_LIBRARIES})
 target_link_libraries(TestDNN ${OpenCV_LIBRARIES} ${dlib_LIBRARIES})

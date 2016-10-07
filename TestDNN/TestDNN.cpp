@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 #include <opencv2/core.hpp>
 
@@ -21,7 +22,8 @@
 //#pragma comment(lib, "dlib.lib")
 //#endif
 
-void outputResult(std::ostream& output, std::vector<unsigned long> answer, std::vector<unsigned long> predict);
+template <class Duration>
+void outputResult(std::ostream& output, std::vector<unsigned long> answer, std::vector<unsigned long> predict, Duration duration);
 
 int main()
 {
@@ -95,31 +97,36 @@ int main()
   trainer.set_mini_batch_size(128);         // なにこれ？バッチサイズ．
   trainer.be_verbose();                     // おそらくログの出力
 
+  auto begin_time = std::chrono::system_clock::now();
+
   // DNNの学習には尋常ではないほどの時間がかかるので20秒おきに自動で現在の状態を保存する
   // なお，途中で終了した場合もmnist_syncファイルがあれば再起してくれる．
   trainer.set_synchronization_file("mnist_sync", std::chrono::seconds(20));
   trainer.train(train_images, train_labels);
+
+  std::cout << "[Learning duration]:" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin_time).count() << "s" << std::endl;
 
   // 保存前にclear．
   net.clean();
 
   // 多分学習結果の保存．
   dlib::serialize("mnist_network.dat") << net;
-
-
+  
   std::cout << "[Input trained labels]" << std::endl;
+  begin_time = std::chrono::system_clock::now();
   std::vector<unsigned long> predicted_labels = net(train_images);
-  outputResult(std::cout, train_labels, predicted_labels);
+  outputResult(std::cout, train_labels, predicted_labels, std::chrono::system_clock::now() - begin_time);
 
   std::cout << "[Input unknown labels]" << std::endl;
+  begin_time = std::chrono::system_clock::now();
   predicted_labels = net(unknown_images);
-  outputResult(std::cout, unknown_labels, predicted_labels);
+  outputResult(std::cout, unknown_labels, predicted_labels, std::chrono::system_clock::now() - begin_time);
 
   return 0;
 }
 
-
-void outputResult(std::ostream& output, std::vector<unsigned long> answer, std::vector<unsigned long> predict)
+template <class Duration>
+void outputResult(std::ostream& output, std::vector<unsigned long> answer, std::vector<unsigned long> predict, Duration duration)
 {
   int num_correct = 0;
   int num_wrong = 0;
@@ -136,7 +143,8 @@ void outputResult(std::ostream& output, std::vector<unsigned long> answer, std::
     }
   }
 
-  output << "testing num_right: " << num_correct << std::endl;
-  output << "testing num_wrong: " << num_wrong << std::endl;
-  output << "testing accuracy:  " << num_correct / static_cast<double>(num_correct + num_wrong) << std::endl;
+  output << "Testing num_right: " << num_correct << std::endl;
+  output << "Testing num_wrong: " << num_wrong << std::endl;
+  output << "Testing accuracy:  " << num_correct / static_cast<double>(num_correct + num_wrong) << std::endl;
+  output << "Testing duration:" << std::chrono::duration_cast<std::chrono::seconds>(duration).count() << "s" << std::endl;
 }
