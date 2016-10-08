@@ -11,6 +11,7 @@
 
 #include "ReadMNISTDatas.hpp"
 #include "TrainFilePath.hpp"
+#include "DLIBInput.hpp"
 
 //#if defined(DEBUG) || defined(_DEBUG)
 //#pragma comment(lib, "opencv_core310d.lib")
@@ -27,42 +28,22 @@ void outputResult(std::ostream& output, std::vector<unsigned long> answer, std::
 
 int main()
 {
-  std::vector<cv::Mat> cv_images;
+  std::vector<cv::Mat> cv_train_images;
   std::vector<int> tmp_labels;
   
   // 教師データの読み込み．
-  readImages(INPUT_TRAIN_IMAGE_PATH, cv_images);
+  readImages(INPUT_TRAIN_IMAGE_PATH, cv_train_images);
   readLabels(INPUT_TRAIN_LABEL_PATH, tmp_labels);
 
-  // OpenCV -> dlib へ変換
-  std::vector<dlib::array2d<uchar>> train_images(cv_images.size());
+  // ラベルの型を変換
   std::vector<unsigned long> train_labels(std::begin(tmp_labels), std::end(tmp_labels));
-  std::for_each(std::begin(cv_images), std::end(cv_images),
-    [&train_images](cv::Mat const& cv_img) 
-    {
-      static int i = 0;
-      dlib::assign_image(train_images[i], dlib::cv_image<uchar>(cv_img));
-      ++i;
-    }
-  );
 
   // 非教師データの読み込み
-  cv_images.clear();
+  std::vector<cv::Mat> cv_unknown_images;
   tmp_labels.clear();
-  readImages(INPUT_UNKNOWN_IMAGE_PATH, cv_images);
+  readImages(INPUT_UNKNOWN_IMAGE_PATH, cv_unknown_images);
   readLabels(INPUT_UNKNOWN_LABEL_PATH, tmp_labels);
-  std::vector<dlib::array2d<uchar>> unknown_images(cv_images.size());
   std::vector<unsigned long> unknown_labels(std::begin(tmp_labels), std::end(tmp_labels));
-  std::for_each(std::begin(cv_images), std::end(cv_images),
-    [&unknown_images](cv::Mat const& cv_img)
-    {
-      static int i = 0;
-      dlib::assign_image(unknown_images[i], dlib::cv_image<uchar>(cv_img));
-      ++i;
-    }
-  );
-
-
 
   // CNN の定義
   // おそらく A<B<C>> となっている場合 Cが入力で，Bが中間層，Aが出力層
@@ -80,7 +61,7 @@ int main()
     dlib::relu<dlib::fc<120,
     dlib::max_pool<2, 2, 2, 2, dlib::relu<dlib::con<16, 5, 5, 1, 1,
     dlib::max_pool<2, 2, 2, 2, dlib::relu<dlib::con<6, 5, 5, 1, 1,
-    dlib::input<dlib::array2d<uchar>>
+    dlib::input<cv::Mat>
     >>>>>>>>>>>>;
 
   // 上のCNN場合
@@ -102,7 +83,7 @@ int main()
   // DNNの学習には尋常ではないほどの時間がかかるので20秒おきに自動で現在の状態を保存する
   // なお，途中で終了した場合もmnist_syncファイルがあれば再起してくれる．
   trainer.set_synchronization_file("mnist_sync", std::chrono::seconds(20));
-  trainer.train(train_images, train_labels);
+  trainer.train(cv_train_images, train_labels);
 
   std::cout << "[Learning duration]:" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - begin_time).count() << "s" << std::endl;
 
@@ -114,12 +95,12 @@ int main()
   
   std::cout << "[Input trained labels]" << std::endl;
   begin_time = std::chrono::system_clock::now();
-  std::vector<unsigned long> predicted_labels = net(train_images);
+  std::vector<unsigned long> predicted_labels = net(cv_train_images);
   outputResult(std::cout, train_labels, predicted_labels, std::chrono::system_clock::now() - begin_time);
 
   std::cout << "[Input unknown labels]" << std::endl;
   begin_time = std::chrono::system_clock::now();
-  predicted_labels = net(unknown_images);
+  predicted_labels = net(cv_unknown_images);
   outputResult(std::cout, unknown_labels, predicted_labels, std::chrono::system_clock::now() - begin_time);
 
   return 0;
