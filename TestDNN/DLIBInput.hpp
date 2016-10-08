@@ -1,4 +1,4 @@
-#ifndef DLIB_INPUT_HPP
+﻿#ifndef DLIB_INPUT_HPP
 #define DLIB_INPUT_HPP
 
 #include <dlib/dnn/tensor.h>
@@ -77,6 +77,11 @@ namespace dlib
     }
 
   private:
+    /**
+  	* \brief enumerable<cv::Mat> のイテレータをtensor型に変換する．
+  	* \param [in] begin
+  	* \param [in] end
+  	*/
     template <typename Tp, typename input_iterator>
     void to_tensor_(
       input_iterator begin,
@@ -108,7 +113,7 @@ namespace dlib
           }
         }
 
-        ptr += offset * mat.channels();
+        ptr += offset * (mat.channels() - 1);
       }
     }
   };
