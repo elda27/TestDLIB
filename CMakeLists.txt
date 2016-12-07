@@ -52,5 +52,18 @@ else()
     )
 endif()
 
+if (USE_CUDA)
+  cuda_add_executable(AnalysisNetwork
+    ${CMAKE_CURRENT_LIST_DIR}/AnalysisNetwork/AnalysisNetwork.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/TestDNN/DLIBInput.hpp
+    )
+else()
+  add_executable(AnalysisNetwork
+    ${CMAKE_CURRENT_LIST_DIR}/AnalysisNetwork/AnalysisNetwork.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/TestDNN/DLIBInput.hpp
+    )
+endif()
+
 target_link_libraries(ConvertMNISTLabelAndImage ${OpenCV_LIBRARIES})
-target_link_libraries(TestDNN ${OpenCV_LIBRARIES} ${dlib_LIBRARIES})
+target_link_libraries(TestDNN ${OpenCV_LIBRARIES} ${dlib_LIBRARIES} ${CUDA_LIBRARIES})
+target_link_libraries(AnalysisNetwork ${OpenCV_LIBRARIES} ${dlib_LIBRARIES} ${CUDA_LIBRARIES})
